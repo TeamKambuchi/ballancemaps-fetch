@@ -1,24 +1,52 @@
-const username = "ballancemaps", groupKeyword = new RegExp("Ballance自制地图");
+const username = "ballancemaps";
 const indexLink = `http://cc.ysepan.com/f_ht/ajcx/ml.aspx?cz=ml_dq&_dlmc=${username}&_dlmm=`,
       fileListLink = `http://cc.ysepan.com/f_ht/ajcx/wj.aspx?cz=dq&jsq=0&mlbh={index}&wjpx=1&_dlmc=${username}&_dlmm=`;
 
-async function getGroupIndexes() {
+async function getGroupIndexes(patternString) {
   const parser = new DOMParser(),
-        htmlString = await getYsHtml(indexLink);
-  if (htmlString == null) return;
+        htmlString = await getYsHtml(indexLink),
+        groupPattern = new RegExp(patternString);
+  if (htmlString == null) return [];
   let indexHtml = parser.parseFromString(htmlString, "text/html"),
       indexes = [];
   indexHtml.querySelectorAll("li.gml").forEach(element => {
     let indexName = element.querySelector("a.ml").innerHTML;
-    if (groupKeyword.test(indexName))
-      indexes.push({id: element.id.replace("ml_", ""), name: indexName});
+    if (groupPattern.test(indexName))
+      indexes.push({
+        id: element.id.replace("ml_", ""), 
+        name: indexName,
+        notes: element.querySelector("a.ml + label").innerHTML
+      });
   });
   return indexes;
 };
 
 async function getMapList(index) {
   const htmlString = await getYsHtml(fileListLink.replace("{index}", index));
-  return Array.from(htmlString.matchAll(/<li(?:[^<>]+)>.*?<a href="([^">]+)"(?:[^<>]+)?>([^<>]+)<\/a><i>([^<]+)<\/i><b>\s*([^\s|<>]+(?:\s+[^\s|<>]+)*)?\s*\|?\s*([^\s|<>]+(?:\s+[^\s|<>]+)*)?\s*\|?\s*([^\s|<>]+(?:\s+[^\s|<>]+)*)?\s*<\/b><span(?:[^<>]+)>([^<>]+)<\/span>.*?<\/a><\/li>/g));
+  return Array.from(
+    htmlString.matchAll(/<li(?:[^<>]+)>.*?<a href="([^">]+)"(?:[^<>]+)?>([^<>]+)<\/a><i>([^<]+)<\/i><b>\s*([^\s|<>]+(?:\s+[^\s|<>]+)*)?\s*\|?\s*([^\s|<>]+(?:\s+[^\s|<>]+)*)?\s*\|?\s*([^\s|<>]+(?:\s+[^\s|<>]+)*)?\s*<\/b><span(?:[^<>]+)>([^<>]+)<\/span>.*?<\/a><\/li>/g)
+  ).map(matches => {
+    return {
+      name: matches[2],
+      url: matches[1],
+      size: matches[3],
+      author: (matches[4] == undefined) ? '' : matches[4],
+      difficulty: difficultyToNumber(matches[5]),
+      notes: (matches[6] == undefined) ? '' : matches[6],
+      uploadTime: matches[7]
+    }
+  });
+
+  function difficultyToNumber(difficulty) {
+    switch (difficulty) {
+      case '★': return 1;
+      case '★★': return 2;
+      case '★★★': return 3;
+      case '★★★★': return 4;
+      case '★★★★★': return 5;
+    };
+    return -1;
+  };
 };
 
 async function getYsHtml(url) {

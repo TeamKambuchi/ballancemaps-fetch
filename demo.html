@@ -13,11 +13,11 @@
   <div id="maps"></div>
   <script src="ballancemaps-fetch.js"></script>
   <script>
-    getGroupIndexes()
+    getGroupIndexes("Ballance自制地图")
     .then((indexes) => {
       let div = "";
       indexes.forEach(index => {
-        div += `<p onclick="showMapList('${index.id}', this.nextElementSibling)">${index.name}</p><table></table>`;
+        div += `<p onclick="showMapList('${index.id}', this.nextElementSibling)">${index.name} | ${index.notes}</p><table></table>`;
       });
       document.getElementById("maps").innerHTML = div;
     });
@@ -26,7 +26,7 @@
       const maps = await getMapList(index);
       let mapString = "<tr><th>Name</th><th>Size</th><th>Author</th><th>Difficulty</th><th>Notes</th><th>Upload time</th></tr>"
       maps.forEach(map => {
-        mapString += `<tr><td><a href="${map[1]}">${map[2]}</a></td><td>${map[3]}</td><td>${map[4]}</td><td>${map[5]}</td><td>${(map[6] == undefined) ? '' : map[6]}</td><td>${map[7]}</td></tr>`;
+        mapString += `<tr><td><a href="${map.url}">${map.name}</a></td><td>${map.size}</td><td>${map.author}</td><td>${map.difficulty}</td><td>${map.notes}</td><td>${map.uploadTime}</td></tr>`;
       });
       element.innerHTML = mapString;
     };
