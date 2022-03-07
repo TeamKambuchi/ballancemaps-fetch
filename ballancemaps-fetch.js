@@ -13,7 +13,7 @@ async function getGroupIndexes(patternString) {
       indexes.push({
         id: matches[1], 
         name: matches[2],
-        notes: (matches[3] == undefined) ? '' : matches[3]
+        notes: (matches[3] ?? "")
       });
   });
   return indexes;
@@ -28,9 +28,9 @@ async function getMapList(index) {
       name: matches[2],
       url: matches[1],
       size: matches[3],
-      author: (matches[4] == undefined) ? '' : matches[4],
+      author: (matches[4] ?? ""),
       difficulty: difficultyToNumber(matches[5]),
-      notes: (matches[6] == undefined) ? '' : matches[6],
+      notes: (matches[6] ?? ""),
       uploadTime: matches[7]
     }
   });
@@ -57,5 +57,5 @@ async function getYsHtml(url) {
   .catch((error) => {
     console.error('Error: ', error);
   });
-  return responseString;
+  return (responseString ?? "");
 };
