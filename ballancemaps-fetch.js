@@ -3,19 +3,17 @@ const indexLink = `http://cc.ysepan.com/f_ht/ajcx/ml.aspx?cz=ml_dq&_dlmc=${usern
       fileListLink = `http://cc.ysepan.com/f_ht/ajcx/wj.aspx?cz=dq&jsq=0&mlbh={index}&wjpx=1&_dlmc=${username}&_dlmm=`;
 
 async function getGroupIndexes(patternString) {
-  const parser = new DOMParser(),
-        htmlString = await getYsHtml(indexLink),
+  const htmlString = await getYsHtml(indexLink),
         groupPattern = new RegExp(patternString);
-  if (htmlString == null) return [];
-  let indexHtml = parser.parseFromString(htmlString, "text/html"),
-      indexes = [];
-  indexHtml.querySelectorAll("li.gml").forEach(element => {
-    let indexName = element.querySelector("a.ml").innerHTML;
-    if (groupPattern.test(indexName))
+  let indexes = [];
+  Array.from(
+    htmlString.matchAll(new RegExp('<li[^<>]+id="ml_([0-9]+)"[^<>]*>.*?<a [^<>]*>([^<>]+)</a><label>([^<>]+)?</label>.*?</li>', "g"))
+  ).forEach(matches => {
+    if (groupPattern.test(matches[2]))
       indexes.push({
-        id: element.id.replace("ml_", ""), 
-        name: indexName,
-        notes: element.querySelector("a.ml + label").innerHTML
+        id: matches[1], 
+        name: matches[2],
+        notes: (matches[3] == undefined) ? '' : matches[3]
       });
   });
   return indexes;
@@ -24,7 +22,7 @@ async function getGroupIndexes(patternString) {
 async function getMapList(index) {
   const htmlString = await getYsHtml(fileListLink.replace("{index}", index));
   return Array.from(
-    htmlString.matchAll(/<li(?:[^<>]+)>.*?<a href="([^">]+)"(?:[^<>]+)?>([^<>]+)<\/a><i>([^<]+)<\/i><b>\s*([^\s|<>]+(?:\s+[^\s|<>]+)*)?\s*\|?\s*([^\s|<>]+(?:\s+[^\s|<>]+)*)?\s*\|?\s*([^\s|<>]+(?:\s+[^\s|<>]+)*)?\s*<\/b><span(?:[^<>]+)>([^<>]+)<\/span>.*?<\/a><\/li>/g)
+    htmlString.matchAll(/<li(?:[^<>]+)>.*?<a[^<>]+?href="([^">]+)"(?:[^<>]+)?>([^<>]+)<\/a><i>([^<]+)<\/i><b>\s*([^\s|<>]+(?:\s+[^\s|<>]+)*)?\s*\|?\s*([^\s|<>]+(?:\s+[^\s|<>]+)*)?\s*\|?\s*([^\s|<>]+(?:\s+[^\s|<>]+)*)?\s*<\/b><span(?:[^<>]+)>([^<>]+)<\/span>.*?<\/a><\/li>/g)
   ).map(matches => {
     return {
       name: matches[2],
