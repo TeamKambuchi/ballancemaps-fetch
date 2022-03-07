@@ -13,7 +13,8 @@
   <div id="maps"></div>
   <script src="ballancemaps-fetch.js"></script>
   <script>
-    getGroupIndexes("Ballance自制地图")
+    let fetcher = new MapDataFetcher();
+    fetcher.getGroupIndexes("Ballance自制地图")
     .then((indexes) => {
       let div = "";
       indexes.forEach(index => {
@@ -23,7 +24,7 @@
     });
 
     async function showMapList(index, element) {
-      const maps = await getMapList(index);
+      const maps = await fetcher.getMapList(index);
       let mapString = "<tr><th>Name</th><th>Size</th><th>Author</th><th>Difficulty</th><th>Notes</th><th>Upload time</th></tr>"
       maps.forEach(map => {
         mapString += `<tr><td><a href="${map.url}">${map.name}</a></td><td>${map.size}</td><td>${map.author}</td><td>${map.difficulty}</td><td>${map.notes}</td><td>${map.uploadTime}</td></tr>`;
